@@ -46,3 +46,101 @@ A6.
 7. Furniro: User – Order (1:N) La clave ajena va en order (order.user_id) porque un usuario puede hacer muchos pedidos.
 8. Furniro: Order – Product (N:N) Se crea la tabla intermedia order_item (order_id, product_id, quantity, unit_price) porque un pedido tiene varios productos y un producto aparece en varios pedidos. Guardaría cantidad y precio
 
+
+
+
+B3.1.Un socio con un plan que no existe: La clave primaria ya existe en planes, por eso da error de duplicado.
+
+ERROR: la operación de inserción o actualización en la tabla «socios» incumple la restricción de clave externa «socios_plan_id_fkey»
+La clave (plan_id)=(99) no existe en la tabla «planes».
+
+Estado SQL: 23503
+Detalle: La clave (plan_id)=(99) no existe en la tabla «planes».
+
+
+
+B3.2 Un socio con el email de Ana: El email ya existe y al tener la restricción UNIQUE no deja que dos usuarios tengan el mismo email.
+
+ERROR: un valor de clave duplicado incumple la restricción de unicidad «socios_email_key»
+La clave (email)=(ana@gym.com) ya existe.
+
+Estado SQL: 23505
+Detalle: La clave (email)=(ana@gym.com) ya existe.
+
+
+
+B3.3 Una segunda tarjeta para Ana: El plan_id debe hacer referencia a un registro existente en planes(id), al no existir el plan con id = 9999 da error por clave ajena inexistente.
+
+ERROR: un valor de clave duplicado incumple la restricción de unicidad «tarjetas_socio_id_key»
+La clave (socio_id)=(1) ya existe.
+
+Estado SQL: 23505
+Detalle: La clave (socio_id)=(1) ya existe.
+
+
+
+B3.4 Ana reserva otra vez el Spinning del lunes: La columna nombre es obligatoria y no admite valores nulos.
+
+ERROR: un valor de clave duplicado incumple la restricción de unicidad «reservas_socio_id_clase_id_key»
+La clave (socio_id, clase_id)=(1, 1) ya existe.
+
+Estado SQL: 23505
+Detalle: La clave (socio_id, clase_id)=(1, 1) ya existe.
+
+
+
+B3.5 Una reserva para una clase que no existe: Ya existe una reserva del socio 1 para la clase 1, por eso da error por duplicado.
+
+ERROR:  La operación de inserción o actualización en la tabla «reservas» incumple la restricción de clave externa «reservas_clase_id_fkey»
+La clave (clase_id)=(50) no existe en la tabla «clases».
+
+Estado SQL: 23503
+Detalle: La clave (clase_id)=(50) no existe en la tabla «clases».
+
+
+
+B3.6 Borrar el plan Básico: Hay socios con plan_id, y no deja borrar una fila que otra tabla sigue referenciando.
+
+ERROR: la operación de actualización o eliminación en la tabla «planes» incumple la restricción de clave externa «socios_plan_id_fkey» de la tabla «socios».
+La clave (id)=(1) sigue siendo referenciada desde la tabla «socios».
+
+Estado SQL: 23503
+Detalle: La clave (id)=(1) sigue siendo referenciada desde la tabla «socios».
+
+
+
+B3.7 Borrar el plan Mañanas: No da error porque ningún socio tiene ese plan, así que no hay filas que lo referencien.
+
+DELETE 1
+
+La consulta se ha ejecutado correctamente en 59 milisegundos.
+
+
+
+B3.8   B3.6 falla y B3.7 funciona. Los dos son planes. ¿Por qué?
+
+B3.6 falla y B3.7 funciona porque la clave ajena socios.plan_id impide borrar un plan que todavía está referenciado por algún socio. El plan Básico tiene socios asociados. El plan Mañanas no tiene ningún socio, así que no hay referencias que romper y el borrado se permite.
+
+
+B4.11 
+No es ningún error, porque Ana ha reservado tres clases. En la tabla reservas aparece una fila por cada reserva y, como la consulta parte de esa tabla, Ana sale tres veces, una por cada clase que ha reservado.
+
+
+B.5.6 
+
+Pablo, que es el socio número 6, tiene la tarjeta TJ-0006 y una reserva para la clase 4. Las dos están relacionadas con él mediante socio_id. Si se pudiera borrar a Pablo, la tarjeta y la reserva seguirían en la base de datos sin tener un socio al que pertenecer. 
+Primero eliminé las reservas y la tarjeta de Pablo, y después borré su registro de socio. Esto se hace así porque no se puede eliminar un socio mientras haya otras tablas que sigan haciendo referencia. Por último, el socio.
+
+
+
+B6.1. Las dos sirven para evitar que haya valores repetidos. La clave primaria solo puede haber una por tabla y no puede contener valores NULL. Con UNIQUE en una misma tabla puede tenr varios valores como el DNI y el email de los socios.
+
+B6.2. Porque varios registros pueden estar relacionados con el mismo registro de otra tabla. Por ejemplo, varios socios pueden tener contratado el mismo plan, por lo que el valor de plan_id puede aparecer repetido.
+
+B6.3. La clave ajena se coloca en el lado de muchos. Si se pusiera en el lado de uno, habría que guardar varios id en una misma celda, pero no deja porque una celda tiene un único valor.
+
+B6.4. Añadir una restricción UNIQUE a la clave ajena. El mismo registro no puede aparecer relacionado con varios registros de la otra tabla.
+
+B6.5. Porque las dos tablas pueden tener varios registros relacionados entre sí. Se utiliza una tabla intermedia, que guarda cada relación en una fila. 
+
+B6.6. Porque la fecha es a una reserva concreta, no al socio ni a la clase. Un socio puede hacer varias reservas en fechas diferentes y una clase puede recibir reservas de distintos socios. Por eso, la fecha debe guardarse en la tabla reservas.

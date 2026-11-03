@@ -2,7 +2,7 @@
 
 -- Ejercicio B1.
 
-
+-- B1.1
 CREATE TABLE planes (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
@@ -27,7 +27,7 @@ CREATE TABLE tarjetas (
     socio_id INTEGER NOT NULL UNIQUE REFERENCES socios(id)
 );
 
-
+-- B1.2
 CREATE TABLE monitores (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     dni VARCHAR(15) NOT NULL UNIQUE,
@@ -45,7 +45,7 @@ CREATE TABLE clases (
     monitor_id INTEGER NOT NULL REFERENCES monitores(id)
 );
 
-
+-- B1.3
 CREATE TABLE reservas (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     socio_id INTEGER NOT NULL REFERENCES socios(id),
@@ -54,7 +54,7 @@ CREATE TABLE reservas (
     UNIQUE (socio_id, clase_id)
 );
 
-
+-- B1.4
 CREATE TABLE especialidades (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE
@@ -70,7 +70,7 @@ CREATE TABLE monitor_especialidades (
 
 
 
--- Ejercio B2. 
+-- Ejercicio B2. 
 
 
 
@@ -126,5 +126,122 @@ INSERT INTO monitor_especialidades (monitor_id, especialidad_id) VALUES
 (2, 4);
 
 
--- Ejercio B3. 
+-- Ejercicio B4. 
+
+-- B4.1
+SELECT s.nombre, p.nombre AS plan, p.precio_mensual
+FROM socios s
+INNER JOIN planes p ON s.plan_id = p.id
+ORDER BY s.nombre;
+
+
+-- B4.2
+SELECT c.actividad, c.fecha_hora, c.sala, m.nombre AS monitor
+FROM clases c
+INNER JOIN monitores m ON c.monitor_id = m.id
+ORDER BY c.fecha_hora;
+
+
+-- B4.3
+SELECT s.nombre, t.codigo
+FROM socios s
+LEFT JOIN tarjetas t ON t.socio_id = s.id
+ORDER BY s.nombre;
+
+
+-- B4.4
+SELECT s.nombre
+FROM socios s
+LEFT JOIN tarjetas t ON t.socio_id = s.id
+WHERE t.id IS NULL;
+
+
+-- B4.5
+SELECT p.nombre, COUNT(s.id) AS num_socios
+FROM planes p
+LEFT JOIN socios s ON s.plan_id = p.id
+GROUP BY p.id, p.nombre
+ORDER BY p.nombre;
+
+
+-- B4.6
+SELECT s.nombre, c.actividad, c.fecha_hora
+FROM reservas r
+INNER JOIN socios s ON r.socio_id = s.id
+INNER JOIN clases c ON r.clase_id = c.id
+ORDER BY s.nombre, c.fecha_hora;
+
+-- B4.7
+SELECT s.nombre
+FROM reservas r
+INNER JOIN socios s ON r.socio_id = s.id
+WHERE r.clase_id = 1;
+
+-- B4.8
+SELECT c.actividad, c.fecha_hora, c.plazas, COUNT(r.id) AS num_reservas
+FROM clases c
+LEFT JOIN reservas r ON r.clase_id = c.id
+GROUP BY c.id, c.actividad, c.fecha_hora, c.plazas
+ORDER BY c.fecha_hora;
+
+
+-- B4.9
+SELECT m.nombre
+FROM monitores m
+LEFT JOIN clases c ON c.monitor_id = m.id
+WHERE c.id IS NULL;
+
+
+-- B4.10
+SELECT m.nombre AS monitor, e.nombre AS especialidad
+FROM monitor_especialidades me
+INNER JOIN monitores m ON me.monitor_id = m.id
+INNER JOIN especialidades e ON me.especialidad_id = e.id
+ORDER BY m.nombre, e.nombre;
+
+
+
+-- Ejercicio B5. 
+
+-- B5.1
+
+SELECT * FROM socios WHERE email = 'luis@gym.com';
+
+UPDATE socios
+SET plan_id = 2
+WHERE email = 'luis@gym.com';
+
+
+-- B5.2
+SELECT * FROM tarjetas WHERE codigo = 'TJ-0004';
+
+UPDATE tarjetas
+SET activa = TRUE
+WHERE codigo = 'TJ-0004';
+
+-- B5.3
+INSERT INTO tarjetas (codigo, activa, socio_id)
+VALUES ('TJ-0008', TRUE, 8);
+
+-- B5.4
+INSERT INTO reservas (socio_id, clase_id, fecha_reserva)
+VALUES (8, 6, '2026-11-02');
+
+-- B5.5
+SELECT * FROM reservas WHERE socio_id = 2 AND clase_id = 2;
+
+DELETE FROM reservas
+WHERE socio_id = 2 AND clase_id = 2;
+
+-- B5.6
+-- DELETE FROM socios WHERE email = 'pablo@gym.com';
+SELECT * FROM reservas WHERE socio_id = 6;
+DELETE FROM reservas WHERE socio_id = 6;
+
+SELECT * FROM tarjetas WHERE socio_id = 6;
+DELETE FROM tarjetas WHERE socio_id = 6;
+
+SELECT * FROM socios WHERE email = 'pablo@gym.com';
+DELETE FROM socios WHERE email = 'pablo@gym.com';
+
 
